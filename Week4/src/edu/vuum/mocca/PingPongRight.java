@@ -50,13 +50,17 @@ public class PingPongRight {
          * iteration.
          */
         // TODO - You fill in here.
-
+        
+        private String mStringToPrint;
+        
         /**
          * Two SimpleSemaphores use to alternate pings and pongs.  You
          * can use an array of SimpleSemaphores or just define them as
          * two data members.
          */
         // TODO - You fill in here.
+        
+        private SimpleSemaphore[] mSemaphores = new SimpleSemaphore[2];
 
         /**
          * Constructor initializes the data member(s).
@@ -66,6 +70,11 @@ public class PingPongRight {
                                   SimpleSemaphore semaphoreTwo,
                                   int maxIterations) {
             // TODO - You fill in here.
+        	this.mStringToPrint = stringToPrint;
+        	this.mSemaphores[FIRST_SEMA] = semaphoreOne;
+        	this.mSemaphores[SECOND_SEMA] = semaphoreTwo;
+        	this.mMaxLoopIterations = maxIterations;
+ 
         }
 
         /**
@@ -80,6 +89,20 @@ public class PingPongRight {
              */
 
             // TODO - You fill in here.
+        	
+        	 for (int loopsDone = 1;
+                     loopsDone <= mMaxIterations;
+                     ++loopsDone)
+        	 {
+        		 
+        		    acquire();
+                    // Print out the iteration.
+                    System.out.println(mStringToPrint + "(" + loopsDone + ")");
+                    release();
+        	 }
+        	 
+        	 mLatch.countDown();
+        	 
         }
 
         /**
@@ -87,6 +110,12 @@ public class PingPongRight {
          */
         private void acquire() {
             // TODO fill in here
+        	
+        	
+        		mSemaphores[FIRST_SEMA].acquireUninterruptibly();
+        
+        	
+        	
         }
 
         /**
@@ -94,6 +123,7 @@ public class PingPongRight {
          */
         private void release() {
             // TODO fill in here
+        	mSemaphores[SECOND_SEMA].release();
         }
     }
 
@@ -108,38 +138,55 @@ public class PingPongRight {
 
         // TODO initialize this by replacing null with the appropriate
         // constructor call.
-        mLatch = null;
+        mLatch = new CountDownLatch(2);
 
         // Create the ping and pong SimpleSemaphores that control
         // alternation between threads.
-
+        
+             
         // TODO - You fill in here, make pingSema start out unlocked.
-        SimpleSemaphore pingSema = null;
+        SimpleSemaphore pingSema = new SimpleSemaphore(1, true);
+      
+       
+        
+        
         // TODO - You fill in here, make pongSema start out locked.
-        SimpleSemaphore pongSema = null;
+        SimpleSemaphore pongSema = new SimpleSemaphore(0, true);
+        
+        
+  
+    
+        //System.out.println(pingSema.availablePermits());
 
         System.out.println(startString);
-
+        
         // Create the ping and pong threads, passing in the string to
         // print and the appropriate SimpleSemaphores.
-        PlayPingPongThread ping = new PlayPingPongThread(/*
-                                                          * TODO - You fill in
-                                                          * here
-                                                          */);
-        PlayPingPongThread pong = new PlayPingPongThread(/*
-                                                          * TODO - You fill in
-                                                          * here
-                                                          */);
+        PlayPingPongThread ping = new PlayPingPongThread(pingString, pingSema, pongSema, 10);
+        //System.out.println(pingSema.availablePermits());
+        PlayPingPongThread pong = new PlayPingPongThread(pongString, pongSema, pingSema, 10);
 
         // TODO - Initiate the ping and pong threads, which will call
         // the run() hook method.
-
+        
+        ping.start();
+        //System.out.println(pingSema.availablePermits());
+        pong.start();
+        //System.out.println(pingSema.availablePermits());
         // TODO - replace the following line with a barrier
         // synchronizer call to mLatch that waits for both threads to
         // finish.
-        throw new java.lang.InterruptedException();
-
+        
+        
+        try {
+        	 mLatch.await();
+        	 
+        } catch (InterruptedException e) {
+        	throw new java.lang.InterruptedException();
+        }
+        
         System.out.println(finishString);
+        
     }
 
     /**
